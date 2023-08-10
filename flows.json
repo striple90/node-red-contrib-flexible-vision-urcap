@@ -1,0 +1,266 @@
+[
+    {
+        "id": "5d7088eb3f0f0eef",
+        "type": "subflow",
+        "name": "URCap-OUT",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 80,
+                "y": 60,
+                "wires": [
+                    {
+                        "id": "dad97cc1aa607a7d"
+                    }
+                ]
+            }
+        ],
+        "out": [],
+        "env": [],
+        "meta": {
+            "module": "node-red-contrib-flexible-vision-urcap",
+            "type": "URCap-OUT",
+            "version": "0.0.1",
+            "author": "Better Process LLC.",
+            "desc": "output node for the flexible vision urcap",
+            "keywords": "node-red,flexibleVision,urcap",
+            "license": "Apache-2.0"
+        },
+        "color": "#C0DEED",
+        "icon": "font-awesome/fa-wrench"
+    },
+    {
+        "id": "529ec147bfe07c5c",
+        "type": "tcp out",
+        "z": "5d7088eb3f0f0eef",
+        "name": "",
+        "host": "",
+        "port": "",
+        "beserver": "reply",
+        "base64": false,
+        "end": false,
+        "x": 410,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "dad97cc1aa607a7d",
+        "type": "function",
+        "z": "5d7088eb3f0f0eef",
+        "name": "Handle FV response",
+        "func": "try {\n    node.warn(global.get(\"Command\"));\n    switch (global.get(\"Command\")) {\n        case \"Defect-Detection\":\n            node.warn(\"Defect detection triggered\");\n            msg.payload = (msg.payload.detections).toString();\n        break;\n        case \"Defect-Count\":\n            node.warn(\"Defect count triggered\");\n            msg.payload = (msg.payload.detections).toString();\n        break;\n        case \"Position\":\n            node.warn(\"position triggered\");\n            var orgin = global.get(\"TargetPos\");\n            node.warn(orgin);\n            node.warn(\"after orgin\")\n            var newPose = new Array(6);\n            for (let i = 0; i < 6; i++) {\n                newPose[i] = orgin[i];\n            }\n            //set new pose to orgin pose plus the returned coordinates\n            newPose[0] = orgin[0] + msg.payload.tags[0].midpoint_mm[0]/1000;\n            newPose[1] = orgin[1] - msg.payload.tags[0].midpoint_mm[1] / 1000;\n            msg.payload = \"(\" + newPose[0] + \",\" + newPose[1] + \",\" + newPose[2] + \",\" + newPose[3] + \",\" + newPose[4] + \",\" + newPose[5] + \")\";\n        break;\n        case \"Compile-String\":\n            node.warn(\"Compile String\");\n            array = [];\n            for(let i = 0; i < msg.payload.detections; i++) {\n                array[i] = [msg.payload.tags[i].tag, msg.payload.tags[i].img_midpoint[0]];\n            }\n            node.warn(array);\n            array.sort(function (a, b) {\n                return a[1] - b[1];\n            });\n            node.warn(array);\n            array1 = [];\n            for(let i = 0; i < msg.payload.detections; i++) {\n                array1[i] = array[i][0];\n            }\n            string = array1.join(\"\");\n            msg.payload = string;\n        break;\n        case \"Compile-Number\":\n            node.warn(\"Compile Number\");\n            array = [];\n            for (let i = 0; i < msg.payload.detections; i++) {\n                array[i] = [msg.payload.tags[i].tag, msg.payload.tags[i].img_midpoint[0]];\n            }\n            node.warn(array);\n            array.sort(function (a, b) {\n                return a[1] - b[1];\n            });\n            node.warn(array);\n            array1 = [];\n            for(let i = 0; i < msg.payload.detections; i++) {\n                array1[i] = array[i][0];\n            }\n            string = array1.join(\"\");\n            msg.payload = string;\n            msg.payload = array;\n        break;\n\n    }\n    node.warn(msg.payload);\n    return msg;\n} catch(err) {\n    node.warn(\"Flexible Vision Error\");\n    return null;\n} \n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 220,
+        "y": 60,
+        "wires": [
+            [
+                "529ec147bfe07c5c",
+                "df6206ec117ac71a"
+            ]
+        ]
+    },
+    {
+        "id": "df6206ec117ac71a",
+        "type": "debug",
+        "z": "5d7088eb3f0f0eef",
+        "name": "debug 23",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 420,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "3453a034cf894972",
+        "type": "subflow",
+        "name": "URCap-IN",
+        "info": "",
+        "category": "",
+        "in": [],
+        "out": [
+            {
+                "x": 700,
+                "y": 180,
+                "wires": [
+                    {
+                        "id": "c7fcc518b45504f3",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [
+            {
+                "name": "PORT",
+                "type": "num",
+                "value": "40109"
+            }
+        ],
+        "meta": {
+            "module": "node-red-contrib-flexible-vision-urcap",
+            "type": "URCap-IN",
+            "version": "0.0.1",
+            "author": "Better Process LLC.",
+            "desc": "An input node for the flexible vision urcap",
+            "keywords": "node-red,flexible,vision,urcap",
+            "license": "Apache-2.0"
+        },
+        "color": "#C0DEED",
+        "icon": "font-awesome/fa-wrench"
+    },
+    {
+        "id": "b9d6aa226fbfb250",
+        "type": "switch",
+        "z": "3453a034cf894972",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "cont",
+                "v": "set offset:",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 390,
+        "y": 160,
+        "wires": [
+            [
+                "5cf0c87aab168cab"
+            ],
+            [
+                "c7fcc518b45504f3"
+            ]
+        ]
+    },
+    {
+        "id": "0d8e509981ec3e76",
+        "type": "tcp in",
+        "z": "3453a034cf894972",
+        "name": "",
+        "server": "server",
+        "host": "",
+        "port": "${PORT}",
+        "datamode": "stream",
+        "datatype": "utf8",
+        "newline": "}",
+        "topic": "",
+        "base64": false,
+        "x": 230,
+        "y": 160,
+        "wires": [
+            [
+                "b9d6aa226fbfb250",
+                "56b751e9225de6df"
+            ]
+        ]
+    },
+    {
+        "id": "8c1a7a0af6b19c65",
+        "type": "debug",
+        "z": "3453a034cf894972",
+        "name": "debug 20",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "56b751e9225de6df",
+        "type": "debug",
+        "z": "3453a034cf894972",
+        "name": "debug 21",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 400,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "5cf0c87aab168cab",
+        "type": "function",
+        "z": "3453a034cf894972",
+        "name": "set Target",
+        "func": "var targetPos = msg.payload.substr(12);\nnode.warn(targetPos);\nvar strippedString = targetPos.slice(1,-1);\nvar coordinates = strippedString.split(\",\").map(coord => parseFloat(coord));\nnode.warn(coordinates);\nglobal.set(\"TargetPos\", coordinates);\nmsg.payload = coordinates;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 140,
+        "wires": [
+            [
+                "8c1a7a0af6b19c65"
+            ]
+        ]
+    },
+    {
+        "id": "c7fcc518b45504f3",
+        "type": "function",
+        "z": "3453a034cf894972",
+        "name": "Set Command",
+        "func": "global.set(\"Command\", msg.payload);\nnode.warn(global.get(\"Command\"));\nmsg.payload = \"trigger ONPREM.SNAP\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 180,
+        "wires": [
+            [
+                "8c1a7a0af6b19c65"
+            ]
+        ]
+    },
+    {
+        "id": "443e39a848703478",
+        "type": "subflow:3453a034cf894972",
+        "z": "8e0ad04c81208871",
+        "name": "",
+        "env": [],
+        "x": 200,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "425266dbf2418470",
+        "type": "subflow:5d7088eb3f0f0eef",
+        "z": "8e0ad04c81208871",
+        "name": "",
+        "env": [],
+        "x": 650,
+        "y": 340,
+        "wires": []
+    }
+]
